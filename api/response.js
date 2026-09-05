@@ -7,30 +7,40 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Hardcoded values to eliminate Vercel Env Variable issues
   const url = 'https://polished-marten-120532.upstash.io';
-  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThnNWFlNDA0MGE0OGRmMwQyZg5NWEyYjlm...'; 
+  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThhNWFiNDA0MGE0OGRmNWQwYzg5NWEyYjlmNA';
 
   try {
-    // 1. POST (Save click)
+    // 1. OPSLAAN (POST)
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const answer = body.answer || 'YES';
       const timestamp = body.timestamp || new Date().toLocaleString();
-      const payload = JSON.stringify({ answer, timestamp });
+      const valToStore = JSON.stringify({ answer, timestamp });
 
-      const upstashRes = await fetch(`${url}/set/proposal_answer/${encodeURIComponent(payload)}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      // Stuur als officieel Upstash array-commando
+      const upstashRes = await fetch(`${url}/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['SET', 'proposal_answer', valToStore])
       });
 
-      const data = await upstashRes.json();
-      return res.status(200).json({ success: true, answer, timestamp, result: data });
+      const upstashData = await upstashRes.json();
+      return res.status(200).json({ success: true, answer, timestamp, raw: upstashData });
     }
 
-    // 2. GET (Read status)
+    // 2. UITLEZEN (GET)
     if (req.method === 'GET') {
-      const upstashRes = await fetch(`${url}/get/proposal_answer`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const upstashRes = await fetch(`${url}/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['GET', 'proposal_answer'])
       });
 
       const data = await upstashRes.json();
