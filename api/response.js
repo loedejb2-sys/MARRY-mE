@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   }
 
   const url = 'https://polished-marten-120532.upstash.io';
-  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThnNWFlNDA0MGE0OGRmMwQyZg5NWEyYjlm';
+  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThhNWFiNDA0MGE0OGRmNWQwYzg5NWEyYjlmNA';
 
   try {
     if (req.method === 'POST') {
