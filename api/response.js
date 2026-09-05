@@ -1,5 +1,4 @@
 module.exports = async function handler(req, res) {
-  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,46 +7,30 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Retrieve Redis connection info
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || 'https://polished-marten-120532.upstash.io';
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-
-  if (!token) {
-    return res.status(500).json({ error: 'Missing Redis Token' });
-  }
-
-  const baseUrl = url.replace(/\/$/, '');
+  // Hardcoded values to eliminate Vercel Env Variable issues
+  const url = 'https://polished-marten-120532.upstash.io';
+  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThnNWFlNDA0MGE0OGRmMwQyZg5NWEyYjlm...'; 
 
   try {
-    // 1. SAVE RESPONSE (POST)
+    // 1. POST (Save click)
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const answer = body.answer || 'YES';
       const timestamp = body.timestamp || new Date().toLocaleString();
-      const valToStore = JSON.stringify({ answer, timestamp });
+      const payload = JSON.stringify({ answer, timestamp });
 
-      const upstashRes = await fetch(`${baseUrl}/`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(['SET', 'proposal_answer', valToStore])
+      const upstashRes = await fetch(`${url}/set/proposal_answer/${encodeURIComponent(payload)}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      const upstashData = await upstashRes.json();
-      return res.status(200).json({ success: true, answer, timestamp, raw: upstashData });
+      const data = await upstashRes.json();
+      return res.status(200).json({ success: true, answer, timestamp, result: data });
     }
 
-    // 2. READ RESPONSE (GET)
+    // 2. GET (Read status)
     if (req.method === 'GET') {
-      const upstashRes = await fetch(`${baseUrl}/`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(['GET', 'proposal_answer'])
+      const upstashRes = await fetch(`${url}/get/proposal_answer`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       const data = await upstashRes.json();
@@ -66,6 +49,6 @@ module.exports = async function handler(req, res) {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
-    return res.status(500).json({ error: 'Serverless Execution Error', message: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
