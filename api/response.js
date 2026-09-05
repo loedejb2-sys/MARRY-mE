@@ -1,17 +1,47 @@
-import { kv } from '@vercel/kv';
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'POST') {
-    const { answer, timestamp } = req.body;
-    await kv.set('proposal_answer', { answer, timestamp });
-    return res.status(200).json({ success: true });
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
+  // Get Upstash credentials automatically provided by Vercel
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  // 1. When she clicks YES/NO, save the answer into Redis
+  if (req.method === 'POST') {
+    const { answer, timestamp } = req.body;
+    
+    await fetch(`${url}/set/proposal_answer`, {
+      headers: { Authorization: `Bearer ${token}` },
+      method: 'POST',
+      body: JSON.stringify({ answer, timestamp })
+    });
+
+    return res.status(200).json({ success: true, answer });
+  }
+
+  // 2. When your dashboard checks, retrieve the answer from Redis
   if (req.method === 'GET') {
-    const data = await kv.get('proposal_answer');
-    return res.status(200).json(data || { answer: null });
+    const response = await fetch(`${url}/get/proposal_answer`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const data = await response.json();
+    let result = { answer: null, timestamp: null };
+
+    if (data.result) {
+      try {
+        result = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+      } catch (e) {
+        result = { answer: null, timestamp: null };
+      }
+    }
+
+    return res.status(200).json(result);
   }
 
   res.status(405).json({ error: 'Method not allowed' });
