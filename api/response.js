@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,30 +7,26 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Grab credentials from whichever set is active
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  // Directly set your Upstash URL and token from process.env fallback
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || 'https://polished-marten-120532.upstash.io';
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
-  if (!url || !token) {
+  if (!token) {
     return res.status(500).json({ 
-      error: 'Environment variables missing', 
-      hasUrl: !!url, 
-      hasToken: !!token 
+      error: 'Token missing. Please check Vercel environment variables or paste token into code.' 
     });
   }
 
-  // Clean URL to prevent double slashes
   const baseUrl = url.replace(/\/$/, '');
 
   try {
-    // --- 1. POST: SAVE ANSWER ---
+    // 1. SAVE ANSWER (POST)
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const answer = body.answer || 'YES';
       const timestamp = body.timestamp || new Date().toLocaleString();
       const valToStore = JSON.stringify({ answer, timestamp });
 
-      // Send as Upstash REST command array: ["SET", "proposal_answer", value]
       const upstashRes = await fetch(`${baseUrl}/`, {
         method: 'POST',
         headers: {
@@ -42,17 +37,11 @@ export default async function handler(req, res) {
       });
 
       const upstashData = await upstashRes.json();
-
-      if (!upstashRes.ok || upstashData.error) {
-        return res.status(500).json({ error: 'Redis write error', details: upstashData });
-      }
-
-      return res.status(200).json({ success: true, answer, timestamp });
+      return res.status(200).json({ success: true, answer, timestamp, raw: upstashData });
     }
 
-    // --- 2. GET: FETCH ANSWER ---
+    // 2. FETCH ANSWER (GET)
     if (req.method === 'GET') {
-      // Send as Upstash REST command array: ["GET", "proposal_answer"]
       const upstashRes = await fetch(`${baseUrl}/`, {
         method: 'POST',
         headers: {
@@ -78,6 +67,6 @@ export default async function handler(req, res) {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
-    return res.status(500).json({ error: 'Serverless execution error', message: err.message });
+    return res.status(500).json({ error: 'Execution failure', message: err.message });
   }
 }
