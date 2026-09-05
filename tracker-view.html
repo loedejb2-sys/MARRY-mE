@@ -54,21 +54,23 @@
     .subtext {
       color: #94a3b8;
       font-size: 0.85rem;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     .reset-btn {
       background: transparent;
       border: 1px solid #475569;
-      color: #64748b;
-      padding: 6px 14px;
+      color: #94a3b8;
+      padding: 8px 16px;
       border-radius: 8px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
     .reset-btn:hover {
       background: #334155;
       color: #f8fafc;
+      border-color: #64748b;
     }
   </style>
 </head>
@@ -81,7 +83,7 @@
     <div class="label">Current Answer</div>
     <div class="answer" id="answerText">AWAITING RESPONSE... ⏳</div>
     <div class="subtext" id="subtext">Waiting for her to click...</div>
-    <button class="reset-btn" onclick="resetAnswer()">Reset Tracker</button>
+    <button class="reset-btn" id="resetBtn" onclick="resetAnswer()">Reset Tracker</button>
   </div>
 
   <script>
@@ -114,14 +116,34 @@
     }
 
     async function resetAnswer() {
-      await fetch('/api/response', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answer: null, timestamp: null })
-      });
-      checkResponse();
+      const resetBtn = document.getElementById('resetBtn');
+      resetBtn.textContent = 'Resetting...';
+      resetBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answer: '', timestamp: '' })
+        });
+
+        if (res.ok) {
+          document.getElementById('answerText').textContent = "AWAITING RESPONSE... ⏳";
+          document.getElementById('answerText').style.color = "#38bdf8";
+          document.getElementById('subtext').textContent = "Waiting for her to click...";
+        } else {
+          alert('Failed to reset. Check console for details.');
+        }
+      } catch (err) {
+        console.error('Error during reset:', err);
+        alert('Network error while resetting.');
+      } finally {
+        resetBtn.textContent = 'Reset Tracker';
+        resetBtn.disabled = false;
+      }
     }
 
+    // Run immediately and poll every 2 seconds
     checkResponse();
     setInterval(checkResponse, 2000);
   </script>
