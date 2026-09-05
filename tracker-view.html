@@ -1,89 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Response Tracker Dashboard 📊</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Proposal Status Tracker 📊</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Fredoka', sans-serif;
-      background: #0f172a;
-      color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0f172a;
+      color: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 50px 20px;
+      justify-content: center;
+      padding: 20px;
     }
-    h1 { font-size: 2.2rem; color: #f43f5e; margin-bottom: 8px; }
-    p { color: #94a3b8; margin-bottom: 30px; }
+    h1 {
+      font-size: 2.2rem;
+      color: #f43f5e;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin-bottom: 30px;
+    }
     .status-card {
       background: #1e293b;
-      border: 2px solid #334155;
-      padding: 40px;
-      border-radius: 24px;
+      border: 1px solid #334155;
+      padding: 40px 30px;
+      border-radius: 20px;
+      max-width: 420px;
       width: 100%;
-      max-width: 450px;
       text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     }
-    .badge {
-      display: inline-block;
+    .label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #64748b;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+    .answer {
       font-size: 1.8rem;
-      padding: 14px 28px;
-      border-radius: 50px;
-      margin: 20px 0;
-      background: #334155;
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 15px;
+    }
+    .subtext {
       color: #94a3b8;
+      font-size: 0.85rem;
     }
-    .badge.yes { background: #10b981; color: #ffffff; animation: pulse 1.5s infinite; }
-    .badge.no { background: #ef4444; color: #ffffff; }
-
-    @keyframes pulse {
-      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
-      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
-    .time-stamp { color: #64748b; font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
   <h1>Proposal Status Tracker</h1>
-  <p>Live status updates from her click</p>
+  <p class="subtitle">Live status updates from her click</p>
 
   <div class="status-card">
-    <div style="font-size: 0.9rem; color: #cbd5e1; text-transform: uppercase;">Current Answer</div>
-    <div class="badge" id="statusBadge">AWAITING RESPONSE... ⏳</div>
-    <div class="time-stamp" id="timestampText">Waiting for her to click...</div>
+    <div class="label">Current Answer</div>
+    <div class="answer" id="answerText">AWAITING RESPONSE... ⏳</div>
+    <div class="subtext" id="subtext">Waiting for her to click...</div>
   </div>
 
   <script>
     async function checkResponse() {
       try {
         const res = await fetch('/api/response');
-        const data = await res.json();
-        const badge = document.getElementById('statusBadge');
-        const timestamp = document.getElementById('timestampText');
+        if (!res.ok) return;
 
-        if (data && data.answer) {
-          if (data.answer === 'YES') {
-            badge.className = 'badge yes';
-            badge.textContent = 'SHE SAID YES! 🎉💖';
-          } else {
-            badge.className = 'badge no';
-            badge.textContent = 'SHE SAID NO 💔';
-          }
-          timestamp.textContent = 'Clicked at: ' + (data.timestamp || 'Just now');
+        const data = await res.json();
+        const answerEl = document.getElementById('answerText');
+        const subtextEl = document.getElementById('subtext');
+
+        if (data && data.answer === 'YES') {
+          answerEl.textContent = "SHE SAID YES! 🎉💖";
+          answerEl.style.color = "#4ade80";
+          subtextEl.textContent = `Received at ${data.timestamp || 'just now'}`;
+        } else if (data && data.answer === 'NO') {
+          answerEl.textContent = "She said no... 🥺";
+          answerEl.style.color = "#f87171";
+          subtextEl.textContent = `Received at ${data.timestamp || 'just now'}`;
         }
       } catch (err) {
-        console.log('Waiting for response...');
+        console.error('Polling error:', err);
       }
     }
 
+    // Poll every 2 seconds
     setInterval(checkResponse, 2000);
     checkResponse();
   </script>
+
 </body>
 </html>
