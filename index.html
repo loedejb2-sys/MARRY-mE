@@ -3,96 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Will You Marry Me?</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Grand+Hotel&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
-  
+  <title>A Special Question... ❤️</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  
-  <link rel="stylesheet" href="style.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Fredoka', sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      text-align: center;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 40px 30px;
+      border-radius: 30px;
+      box-shadow: 0 15px 35px rgba(233, 30, 99, 0.2);
+      max-width: 400px;
+      width: 90%;
+    }
+    .emoji { font-size: 4rem; margin-bottom: 10px; }
+    h1 { color: #d81b60; font-size: 2rem; margin-bottom: 25px; }
+    .btn-group { display: flex; gap: 15px; justify-content: center; }
+    button {
+      padding: 14px 28px;
+      font-size: 1.2rem;
+      font-family: 'Fredoka', sans-serif;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .btn-yes { background: #e91e63; color: white; box-shadow: 0 5px 15px rgba(233, 30, 99, 0.4); }
+    .btn-yes:hover { transform: scale(1.1); }
+    .btn-no { background: #e0e0e0; color: #555; }
+  </style>
 </head>
 <body>
-
-  <div class="scene">
-    <div class="sky-glow"></div>
-    <div class="sun-disk"></div>
-    <div class="horizon-glow"></div>
-    <div class="ocean">
-      <div class="ocean-reflection"></div>
-      <div class="wave wave1"></div>
-      <div class="wave wave2"></div>
-    </div>
-    <div class="sand">
-      <div class="sand-light-glow"></div>
-    </div>
-
-    <div class="birds">
-      <span class="bird b1">v</span>
-      <span class="bird b2">v</span>
-      <span class="bird b3">v</span>
-      <span class="bird b4">v</span>
-      <span class="bird b5">v</span>
-    </div>
-
-    <div class="arch-wrapper">
-      <div class="arch-backglow"></div>
-
-      <svg class="heart-arch-svg" viewBox="0 0 500 500">
-        <defs>
-          <radialGradient id="flowerGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
-            <stop offset="70%" stop-color="#fff8e7" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#eedcba" stop-opacity="0.4"/>
-          </radialGradient>
-          <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-            <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.4"/>
-          </filter>
-        </defs>
-
-        <path class="arch-base" d="M 250, 440 C 50, 310 30, 110 180, 70 C 230, 55 250, 110 250, 110 C 250, 110 270, 55 320, 70 C 470, 110 450, 310 250, 440 Z" />
-        <path class="arch-roses-outer" filter="url(#shadow)" d="M 250, 440 C 50, 310 30, 110 180, 70 C 230, 55 250, 110 250, 110 C 250, 110 270, 55 320, 70 C 470, 110 450, 310 250, 440 Z" />
-        <path class="arch-roses-inner" d="M 250, 435 C 55, 308 38, 115 180, 75 C 228, 62 250, 112 250, 112 C 250, 112 272, 62 320, 75 C 462, 115 445, 308 250, 435 Z" />
-      </svg>
-
-      <div class="neon-sign">
-        <span class="neon-line line-1">Will You</span>
-        <span class="neon-line line-2">Marry Me?</span>
-      </div>
-    </div>
-
-    <div class="foreground-decor">
-      <div class="candle-group">
-        <div class="candle c1"><div class="wick"></div><div class="flame"></div></div>
-        <div class="candle c2"><div class="wick"></div><div class="flame"></div></div>
-        <div class="candle c3"><div class="wick"></div><div class="flame"></div></div>
-        <div class="candle c4"><div class="wick"></div><div class="flame"></div></div>
-        <div class="candle c5"><div class="wick"></div><div class="flame"></div></div>
-        <div class="candle c6"><div class="wick"></div><div class="flame"></div></div>
-        <div class="candle c7"><div class="wick"></div><div class="flame"></div></div>
-        <div class="candle c8"><div class="wick"></div><div class="flame"></div></div>
-      </div>
-    </div>
-
-    <div class="action-dock">
-      <button class="btn btn-yes" onclick="handleChoice(true)">
-        <span class="btn-icon">💖</span> YES!
-      </button>
-      <button class="btn btn-no" id="noBtn" onclick="handleChoice(false)">
-        No
-      </button>
+  <div class="card">
+    <div class="emoji" id="emoji">💖</div>
+    <h1 id="questionText">Will You Marry Me?</h1>
+    <div class="btn-group" id="btnGroup">
+      <button class="btn-yes" onclick="sendAnswer('YES')">YES! 🥰</button>
+      <button class="btn-no" onclick="sendAnswer('NO')">No 🥺</button>
     </div>
   </div>
 
-  <div class="modal-backdrop" id="responseModal">
-    <div class="modal-card">
-      <div class="modal-badge" id="modalEmoji">🥰</div>
-      <h2 class="modal-title" id="modalTitle">YYAYYYY I LOVEEE YOUUUU!</h2>
-      <p class="modal-subtext" id="modalSubtext">You have made this the happiest day of my life! ❤️✨</p>
-      <button class="modal-close-btn" onclick="closeModal()">Close & Celebrate 🎉</button>
-    </div>
-  </div>
+  <script>
+    async function sendAnswer(choice) {
+      const emoji = document.getElementById('emoji');
+      const question = document.getElementById('questionText');
+      const btnGroup = document.getElementById('btnGroup');
 
-  <script src="script.js"></script>
+      // Send the click to your background server
+      try {
+        await fetch('http://localhost:3000/api/response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answer: choice, timestamp: new Date().toLocaleTimeString() })
+        });
+      } catch (err) {
+        console.log("Server error:", err);
+      }
+
+      btnGroup.style.display = 'none';
+
+      if (choice === 'YES') {
+        emoji.textContent = "🥳💖";
+        question.textContent = "YYAYYYY I LOVEEE YOUUUU!";
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else {
+        emoji.textContent = "🥺🤍";
+        question.textContent = "I understand, love..";
+      }
+    }
+  </script>
 </body>
 </html>
