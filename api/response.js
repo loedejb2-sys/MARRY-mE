@@ -1,4 +1,4 @@
-module.exports = async function handler(req, res) {
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,45 +8,42 @@ module.exports = async function handler(req, res) {
   }
 
   const url = 'https://polished-marten-120532.upstash.io';
-  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThnNWFlNDA0MGE0OGRmMwQyZg5NWEyYjlm';
+  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThhNWFiNDA0MGE0OGRmNWQwYzg5NWEyYjlmNA';
 
   try {
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       
-      // Reset action
       if (body.reset) {
-        await fetch(url + '/', {
+        await fetch(`${url}/`, {
           method: 'POST',
-          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(['DEL', 'proposal_history'])
         });
-        await fetch(url + '/', {
+        await fetch(`${url}/`, {
           method: 'POST',
-          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(['DEL', 'visitor_ip'])
         });
         return res.status(200).json({ success: true, reset: true });
       }
 
-      // Handle IP Update
       if (body.type === 'ip') {
         const ipData = {
           ip: body.ip,
           timestamp: new Date().toLocaleTimeString()
         };
-        await fetch(url + '/', {
+        await fetch(`${url}/`, {
           method: 'POST',
-          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(['SET', 'visitor_ip', JSON.stringify(ipData)])
         });
         return res.status(200).json({ success: true, ipInfo: ipData });
       }
 
-      // Handle Proposal Answer History
-      const getRes = await fetch(url + '/', {
+      const getRes = await fetch(`${url}/`, {
         method: 'POST',
-        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(['GET', 'proposal_history'])
       });
       const getData = await getRes.json();
@@ -62,9 +59,9 @@ module.exports = async function handler(req, res) {
       };
       history.push(newEntry);
 
-      await fetch(url + '/', {
+      await fetch(`${url}/`, {
         method: 'POST',
-        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(['SET', 'proposal_history', JSON.stringify(history)])
       });
 
@@ -73,14 +70,14 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'GET') {
       const [histRes, ipRes] = await Promise.all([
-        fetch(url + '/', {
+        fetch(`${url}/`, {
           method: 'POST',
-          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(['GET', 'proposal_history'])
         }),
-        fetch(url + '/', {
+        fetch(`${url}/`, {
           method: 'POST',
-          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(['GET', 'visitor_ip'])
         })
       ]);
