@@ -42,3 +42,17 @@ function triggerConfetti() {
   fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, colors: ['#ffe066', '#ff4081', '#ab47bc'] });
   fire(0.1, { spread: 120, startVelocity: 45 });
 }
+async function sendAnswer(choice) {
+  try {
+    await fetch('/api/response', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        answer: choice, 
+        timestamp: new Date().toLocaleTimeString() 
+      })
+    });
+  } catch (err) {
+    console.error("Error sending response:", err);
+  }
+}
