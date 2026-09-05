@@ -10,8 +10,13 @@ export default async function handler(req, res) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
+  // Fallback check if environment variables are missing
+  if (!url || !token) {
+    return res.status(500).json({ error: 'Upstash environment variables missing in Vercel' });
+  }
+
   if (req.method === 'POST') {
-    const { answer, timestamp } = req.body;
+    const { answer, timestamp } = req.body || {};
     
     await fetch(`${url}/set/proposal_answer`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -30,7 +35,7 @@ export default async function handler(req, res) {
     const data = await response.json();
     let result = { answer: null, timestamp: null };
 
-    if (data.result) {
+    if (data && data.result) {
       try {
         result = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
       } catch (e) {
