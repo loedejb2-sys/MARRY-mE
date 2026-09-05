@@ -75,6 +75,8 @@
         if (!res.ok) return;
 
         const data = await res.json();
+        console.log('Polling data:', data);
+
         const answerEl = document.getElementById('answerText');
         const subtextEl = document.getElementById('subtext');
 
@@ -92,9 +94,9 @@
       }
     }
 
-    // Poll every 2 seconds
-    setInterval(checkResponse, 2000);
+    // Check immediately on load and then every 2 seconds
     checkResponse();
+    setInterval(checkResponse, 2000);
   </script>
 
 </body>
