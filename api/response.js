@@ -8,24 +8,43 @@ module.exports = async function handler(req, res) {
   }
 
   const url = 'https://polished-marten-120532.upstash.io';
-  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThhNWFiNDA0MGE0OGRmNWQwYzg5NWEyYjlmNA';
+  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThnNWFlNDA0MGE0OGRmMwQyZg5NWEyYjlm';
 
   try {
-    // 1. POST (Add entry or Clear all)
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-
+      
       // Reset action
-      if (!body.answer) {
+      if (body.reset) {
         await fetch(url + '/', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
           body: JSON.stringify(['DEL', 'proposal_history'])
         });
+        await fetch(url + '/', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(['DEL', 'live_location'])
+        });
         return res.status(200).json({ success: true, reset: true });
       }
 
-      // Read existing history array first
+      // Handle Location Update
+      if (body.type === 'location') {
+        const locData = {
+          lat: body.lat,
+          lng: body.lng,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        await fetch(url + '/', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(['SET', 'live_location', JSON.stringify(locData)])
+        });
+        return res.status(200).json({ success: true, location: locData });
+      }
+
+      // Handle Proposal Answer History
       const getRes = await fetch(url + '/', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -37,7 +56,6 @@ module.exports = async function handler(req, res) {
         try { history = JSON.parse(getData.result); } catch (e) {}
       }
 
-      // Push new event
       const newEntry = {
         id: history.length + 1,
         answer: body.answer,
@@ -45,7 +63,6 @@ module.exports = async function handler(req, res) {
       };
       history.push(newEntry);
 
-      // Save updated history list back to Redis
       await fetch(url + '/', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -55,21 +72,35 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ success: true, history });
     }
 
-    // 2. GET (Fetch history array)
     if (req.method === 'GET') {
-      const upstashRes = await fetch(url + '/', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify(['GET', 'proposal_history'])
-      });
-      const data = await upstashRes.json();
+      // Fetch history and location simultaneously
+      const [histRes, locRes] = await Promise.all([
+        fetch(url + '/', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(['GET', 'proposal_history'])
+        }),
+        fetch(url + '/', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(['GET', 'live_location'])
+        })
+      ]);
+
+      const histData = await histRes.json();
+      const locData = await locRes.json();
 
       let history = [];
-      if (data && data.result) {
-        try { history = JSON.parse(data.result); } catch (e) {}
+      if (histData && histData.result) {
+        try { history = JSON.parse(histData.result); } catch (e) {}
       }
 
-      return res.status(200).json({ history });
+      let location = null;
+      if (locData && locData.result) {
+        try { location = JSON.parse(locData.result); } catch (e) {}
+      }
+
+      return res.status(200).json({ history, location });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
