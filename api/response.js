@@ -7,11 +7,9 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Get Upstash credentials automatically provided by Vercel
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  // 1. When she clicks YES/NO, save the answer into Redis
   if (req.method === 'POST') {
     const { answer, timestamp } = req.body;
     
@@ -24,7 +22,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, answer });
   }
 
-  // 2. When your dashboard checks, retrieve the answer from Redis
   if (req.method === 'GET') {
     const response = await fetch(`${url}/get/proposal_answer`, {
       headers: { Authorization: `Bearer ${token}` }
