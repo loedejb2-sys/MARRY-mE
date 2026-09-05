@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Proposal Status Tracker 📊</title>
+  <title>Proposal Status Tracker ✨</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #0f172a;
-      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(135deg, #090d16 0%, #172033 50%, #1e1b2e 100%);
+      color: #f8fafc;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -17,106 +18,149 @@
       justify-content: center;
       padding: 20px;
     }
-    h1 { font-size: 2.2rem; color: #f43f5e; margin-bottom: 8px; }
-    .subtitle { color: #94a3b8; font-size: 0.95rem; margin-bottom: 30px; }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #f6d8ae, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+      text-align: center;
+      letter-spacing: 0.5px;
+      text-shadow: 0 10px 30px rgba(244, 63, 94, 0.2);
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin-bottom: 35px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
     .status-card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      padding: 35px 30px;
-      border-radius: 20px;
-      max-width: 450px;
+      background: rgba(23, 32, 51, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(246, 216, 174, 0.15);
+      padding: 40px 30px;
+      border-radius: 24px;
+      max-width: 440px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(244, 63, 94, 0.08);
     }
     .label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #64748b;
+      letter-spacing: 2px;
+      color: #f6d8ae;
       margin-bottom: 15px;
       font-weight: 700;
+      opacity: 0.9;
     }
     .answer {
-      font-size: 1.8rem;
-      font-weight: bold;
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
       color: #38bdf8;
       margin-bottom: 12px;
+      text-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
     }
-    .subtext { color: #94a3b8; font-size: 0.85rem; margin-bottom: 25px; }
+    .subtext { 
+      color: #94a3b8; 
+      font-size: 0.85rem; 
+      margin-bottom: 25px; 
+    }
 
-    /* Slider & Timeline UI */
+    /* History Slider & Timeline UI */
     .slider-section {
-      background: #0f172a;
-      border: 1px solid #334155;
-      padding: 18px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      display: none; /* Shown when history exists */
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 24px;
+      display: none;
     }
     .slider-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #cbd5e1;
       margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     input[type=range] {
       width: 100%;
       accent-color: #f43f5e;
       cursor: pointer;
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
     }
     .nav-btns {
       display: flex;
       justify-content: space-between;
       gap: 10px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
     .nav-btn {
-      background: #334155;
+      background: rgba(51, 65, 85, 0.6);
       color: #f8fafc;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 8px;
       font-size: 0.75rem;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.2s;
     }
-    .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .nav-btn:hover:not(:disabled) {
+      background: rgba(244, 63, 94, 0.2);
+      border-color: rgba(244, 63, 94, 0.4);
+    }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
     .reset-btn {
       background: transparent;
-      border: 1px solid #475569;
-      color: #94a3b8;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.8rem;
+      border: 1px solid rgba(246, 216, 174, 0.3);
+      color: #f6d8ae;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.75rem;
       font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
     }
-    .reset-btn:hover { background: #334155; color: #f8fafc; }
+    .reset-btn:hover {
+      background: rgba(246, 216, 174, 0.1);
+      border-color: #f6d8ae;
+      box-shadow: 0 0 15px rgba(246, 216, 174, 0.15);
+    }
   </style>
 </head>
 <body>
 
-  <h1>Proposal Status Tracker</h1>
-  <p class="subtitle">Live status updates & click history</p>
+  <h1>Will You Marry Me</h1>
+  <p class="subtitle">Live Evening Tracker</p>
 
   <div class="status-card">
-    <div class="label" id="cardLabel">CURRENT ANSWER</div>
+    <div class="label" id="cardLabel">Current Answer</div>
     <div class="answer" id="answerText">AWAITING RESPONSE... ⏳</div>
-    <div class="subtext" id="subtext">Waiting for her to click...</div>
+    <div class="subtext" id="subtext">Watching for her decision...</div>
 
     <!-- Interactive History Slider -->
     <div class="slider-section" id="sliderSection">
       <div class="slider-header">
         <span>Timeline History</span>
-        <strong id="clickCounter">Click 0 / 0</strong>
+        <strong id="clickCounter" style="color: #f6d8ae;">Click 0 / 0</strong>
       </div>
       <input type="range" id="historySlider" min="0" max="0" value="0" oninput="onSliderChange(this.value)">
       <div class="nav-btns">
-        <button class="nav-btn" id="prevBtn" onclick="navigateHistory(-1)">&lt; Previous</button>
-        <button class="nav-btn" id="nextBtn" onclick="navigateHistory(1)">Next &gt;</button>
+        <button class="nav-btn" id="prevBtn" onclick="navigateHistory(-1)">← Previous</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigateHistory(1)">Next →</button>
       </div>
     </div>
 
@@ -136,7 +180,6 @@
         const data = await res.json();
         const history = data.history || [];
 
-        // Update local dataset
         const hasNewClick = history.length !== historyData.length;
         historyData = history;
 
@@ -152,7 +195,6 @@
         sliderSec.style.display = 'block';
         slider.max = historyData.length - 1;
 
-        // Auto-advance to latest unless user manually dragged slider
         if (!userInteractedWithSlider || hasNewClick) {
           currentIndex = historyData.length - 1;
           slider.value = currentIndex;
@@ -174,12 +216,11 @@
       document.getElementById('clickCounter').textContent = `Click ${currentIndex + 1} of ${historyData.length}`;
       document.getElementById('historySlider').value = currentIndex;
 
-      // Update button disabled states
       document.getElementById('prevBtn').disabled = (currentIndex === 0);
       document.getElementById('nextBtn').disabled = (currentIndex === historyData.length - 1);
 
       const isLatest = (currentIndex === historyData.length - 1);
-      document.getElementById('cardLabel').textContent = isLatest ? "LATEST ANSWER" : `HISTORICAL RESPONSE (#${currentIndex + 1})`;
+      document.getElementById('cardLabel').textContent = isLatest ? "Latest Answer" : `Historical Response (#${currentIndex + 1})`;
     }
 
     function renderState(data) {
@@ -189,15 +230,18 @@
       if (data && data.answer === 'YES') {
         answerEl.textContent = "SHE SAID YES! 🎉💖";
         answerEl.style.color = "#4ade80";
+        answerEl.style.textShadow = "0 0 25px rgba(74, 222, 128, 0.3)";
         subtextEl.textContent = `Recorded at ${data.timestamp || 'just now'}`;
       } else if (data && data.answer === 'NO') {
         answerEl.textContent = "She said no... 🥺";
         answerEl.style.color = "#f87171";
+        answerEl.style.textShadow = "0 0 25px rgba(248, 113, 113, 0.3)";
         subtextEl.textContent = `Recorded at ${data.timestamp || 'just now'}`;
       } else {
         answerEl.textContent = "AWAITING RESPONSE... ⏳";
         answerEl.style.color = "#38bdf8";
-        subtextEl.textContent = "Waiting for her to click...";
+        answerEl.style.textShadow = "0 0 20px rgba(56, 189, 248, 0.2)";
+        subtextEl.textContent = "Watching for her decision...";
       }
     }
 
@@ -232,7 +276,7 @@
         currentIndex = -1;
         userInteractedWithSlider = false;
         document.getElementById('sliderSection').style.display = 'none';
-        document.getElementById('cardLabel').textContent = "CURRENT ANSWER";
+        document.getElementById('cardLabel').textContent = "Current Answer";
         renderState(null);
       } catch (err) {
         console.error('Reset error:', err);
