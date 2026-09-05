@@ -17,22 +17,14 @@
       justify-content: center;
       padding: 20px;
     }
-    h1 {
-      font-size: 2.2rem;
-      color: #f43f5e;
-      margin-bottom: 8px;
-    }
-    .subtitle {
-      color: #94a3b8;
-      font-size: 0.95rem;
-      margin-bottom: 30px;
-    }
+    h1 { font-size: 2.2rem; color: #f43f5e; margin-bottom: 8px; }
+    .subtitle { color: #94a3b8; font-size: 0.95rem; margin-bottom: 30px; }
     .status-card {
       background: #1e293b;
       border: 1px solid #334155;
-      padding: 40px 30px;
+      padding: 35px 30px;
       border-radius: 20px;
-      max-width: 420px;
+      max-width: 450px;
       width: 100%;
       text-align: center;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
@@ -49,13 +41,48 @@
       font-size: 1.8rem;
       font-weight: bold;
       color: #38bdf8;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
     }
-    .subtext {
-      color: #94a3b8;
-      font-size: 0.85rem;
-      margin-bottom: 25px;
+    .subtext { color: #94a3b8; font-size: 0.85rem; margin-bottom: 25px; }
+
+    /* Slider & Timeline UI */
+    .slider-section {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: none; /* Shown when history exists */
     }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      margin-bottom: 10px;
+    }
+    input[type=range] {
+      width: 100%;
+      accent-color: #f43f5e;
+      cursor: pointer;
+    }
+    .nav-btns {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .nav-btn {
+      background: #334155;
+      color: #f8fafc;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
     .reset-btn {
       background: transparent;
       border: 1px solid #475569;
@@ -67,51 +94,125 @@
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    .reset-btn:hover {
-      background: #334155;
-      color: #f8fafc;
-      border-color: #64748b;
-    }
+    .reset-btn:hover { background: #334155; color: #f8fafc; }
   </style>
 </head>
 <body>
 
   <h1>Proposal Status Tracker</h1>
-  <p class="subtitle">Live status updates from her click</p>
+  <p class="subtitle">Live status updates & click history</p>
 
   <div class="status-card">
-    <div class="label">Current Answer</div>
+    <div class="label" id="cardLabel">CURRENT ANSWER</div>
     <div class="answer" id="answerText">AWAITING RESPONSE... ⏳</div>
     <div class="subtext" id="subtext">Waiting for her to click...</div>
-    <button class="reset-btn" id="resetBtn" onclick="resetAnswer()">Reset Tracker</button>
+
+    <!-- Interactive History Slider -->
+    <div class="slider-section" id="sliderSection">
+      <div class="slider-header">
+        <span>Timeline History</span>
+        <strong id="clickCounter">Click 0 / 0</strong>
+      </div>
+      <input type="range" id="historySlider" min="0" max="0" value="0" oninput="onSliderChange(this.value)">
+      <div class="nav-btns">
+        <button class="nav-btn" id="prevBtn" onclick="navigateHistory(-1)">&lt; Previous</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigateHistory(1)">Next &gt;</button>
+      </div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn" onclick="resetAnswer()">Reset Tracker History</button>
   </div>
 
   <script>
+    let historyData = [];
+    let currentIndex = -1;
+    let userInteractedWithSlider = false;
+
     async function checkResponse() {
       try {
         const res = await fetch('/api/response');
         if (!res.ok) return;
 
         const data = await res.json();
+        const history = data.history || [];
 
-        const answerEl = document.getElementById('answerText');
-        const subtextEl = document.getElementById('subtext');
+        // Update local dataset
+        const hasNewClick = history.length !== historyData.length;
+        historyData = history;
 
-        if (data && data.answer === 'YES') {
-          answerEl.textContent = "SHE SAID YES! 🎉💖";
-          answerEl.style.color = "#4ade80";
-          subtextEl.textContent = `Received at ${data.timestamp || 'just now'}`;
-        } else if (data && data.answer === 'NO') {
-          answerEl.textContent = "She said no... 🥺";
-          answerEl.style.color = "#f87171";
-          subtextEl.textContent = `Received at ${data.timestamp || 'just now'}`;
-        } else {
-          answerEl.textContent = "AWAITING RESPONSE... ⏳";
-          answerEl.style.color = "#38bdf8";
-          subtextEl.textContent = "Waiting for her to click...";
+        const sliderSec = document.getElementById('sliderSection');
+        const slider = document.getElementById('historySlider');
+
+        if (historyData.length === 0) {
+          sliderSec.style.display = 'none';
+          renderState(null);
+          return;
         }
+
+        sliderSec.style.display = 'block';
+        slider.max = historyData.length - 1;
+
+        // Auto-advance to latest unless user manually dragged slider
+        if (!userInteractedWithSlider || hasNewClick) {
+          currentIndex = historyData.length - 1;
+          slider.value = currentIndex;
+          userInteractedWithSlider = false;
+        }
+
+        renderCurrentIndex();
       } catch (err) {
         console.error('Polling error:', err);
+      }
+    }
+
+    function renderCurrentIndex() {
+      if (historyData.length === 0 || currentIndex < 0) return;
+
+      const entry = historyData[currentIndex];
+      renderState(entry);
+
+      document.getElementById('clickCounter').textContent = `Click ${currentIndex + 1} of ${historyData.length}`;
+      document.getElementById('historySlider').value = currentIndex;
+
+      // Update button disabled states
+      document.getElementById('prevBtn').disabled = (currentIndex === 0);
+      document.getElementById('nextBtn').disabled = (currentIndex === historyData.length - 1);
+
+      const isLatest = (currentIndex === historyData.length - 1);
+      document.getElementById('cardLabel').textContent = isLatest ? "LATEST ANSWER" : `HISTORICAL RESPONSE (#${currentIndex + 1})`;
+    }
+
+    function renderState(data) {
+      const answerEl = document.getElementById('answerText');
+      const subtextEl = document.getElementById('subtext');
+
+      if (data && data.answer === 'YES') {
+        answerEl.textContent = "SHE SAID YES! 🎉💖";
+        answerEl.style.color = "#4ade80";
+        subtextEl.textContent = `Recorded at ${data.timestamp || 'just now'}`;
+      } else if (data && data.answer === 'NO') {
+        answerEl.textContent = "She said no... 🥺";
+        answerEl.style.color = "#f87171";
+        subtextEl.textContent = `Recorded at ${data.timestamp || 'just now'}`;
+      } else {
+        answerEl.textContent = "AWAITING RESPONSE... ⏳";
+        answerEl.style.color = "#38bdf8";
+        subtextEl.textContent = "Waiting for her to click...";
+      }
+    }
+
+    function onSliderChange(val) {
+      userInteractedWithSlider = true;
+      currentIndex = parseInt(val, 10);
+      renderCurrentIndex();
+    }
+
+    function navigateHistory(direction) {
+      userInteractedWithSlider = true;
+      const newIdx = currentIndex + direction;
+      if (newIdx >= 0 && newIdx < historyData.length) {
+        currentIndex = newIdx;
+        renderCurrentIndex();
       }
     }
 
@@ -121,21 +222,22 @@
       resetBtn.disabled = true;
 
       try {
-        const res = await fetch('/api/response', {
+        await fetch('/api/response', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ answer: '', timestamp: '' })
+          body: JSON.stringify({ answer: '' })
         });
 
-        if (res.ok) {
-          document.getElementById('answerText').textContent = "AWAITING RESPONSE... ⏳";
-          document.getElementById('answerText').style.color = "#38bdf8";
-          document.getElementById('subtext').textContent = "Waiting for her to click...";
-        }
+        historyData = [];
+        currentIndex = -1;
+        userInteractedWithSlider = false;
+        document.getElementById('sliderSection').style.display = 'none';
+        document.getElementById('cardLabel').textContent = "CURRENT ANSWER";
+        renderState(null);
       } catch (err) {
-        console.error('Error during reset:', err);
+        console.error('Reset error:', err);
       } finally {
-        resetBtn.textContent = 'Reset Tracker';
+        resetBtn.textContent = 'Reset Tracker History';
         resetBtn.disabled = false;
       }
     }
