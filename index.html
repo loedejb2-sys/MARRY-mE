@@ -58,9 +58,8 @@
       const question = document.getElementById('questionText');
       const btnGroup = document.getElementById('btnGroup');
 
-      // Send the click to your background server
       try {
-        await fetch('http://localhost:3000/api/response', {
+        await fetch('/api/response', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ answer: choice, timestamp: new Date().toLocaleTimeString() })
