@@ -67,7 +67,6 @@
     }
     .subtext { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
 
-    /* Map container styling */
     #map {
       width: 100%;
       height: 250px;
@@ -113,7 +112,6 @@
   <p class="subtitle">Live Status & Location Command Center</p>
 
   <div class="container">
-    <!-- Proposal Status Panel -->
     <div class="status-card">
       <div class="label" id="cardLabel">Current Answer</div>
       <div class="answer" id="answerText">AWAITING RESPONSE... ⏳</div>
@@ -134,7 +132,6 @@
       <button class="reset-btn" onclick="resetAnswer()">Reset Tracker Data</button>
     </div>
 
-    <!-- Live Map Panel -->
     <div class="map-card">
       <div class="label">Live GPS Tracker</div>
       <div class="subtext" id="locStatus" style="margin-bottom: 10px;">Waiting for her location signal...</div>
@@ -142,18 +139,22 @@
     </div>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     let historyData = [];
     let currentIndex = -1;
     let userInteractedWithSlider = false;
 
-    // Initialize Map centered somewhere default (e.g., Netherlands/Europe or world view)
+    // Initialize Map with your Mapbox integration
+    const mapboxKey = 'cb1_2ygy_1_1a720b2df549f16719dc96f8';
     let map = L.map('map').setView([52.1326, 5.2913], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap',
-      maxZoom: 19
+    
+    // Using standard Mapbox streets/dark tiles via Leaflet
+    L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=' + mapboxKey, {
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a>'
     }).addTo(map);
 
     let marker = null;
@@ -167,7 +168,6 @@
         const history = data.history || [];
         const location = data.location;
 
-        // 1. Update Map Position if available
         if (location && location.lat && location.lng) {
           const latLng = [location.lat, location.lng];
           if (!marker) {
@@ -179,7 +179,6 @@
           document.getElementById('locStatus').textContent = `Last updated at ${location.timestamp}`;
         }
 
-        // 2. Update Proposal History
         const hasNewClick = history.length !== historyData.length;
         historyData = history;
 
