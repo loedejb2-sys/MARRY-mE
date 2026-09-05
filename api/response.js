@@ -11,62 +11,65 @@ module.exports = async function handler(req, res) {
   const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThhNWFiNDA0MGE0OGRmNWQwYzg5NWEyYjlmNA';
 
   try {
+    // 1. POST (Add entry or Clear all)
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-      
-      if (!body.answer) {
-        const upstashRes = await fetch(url + '/', {
-          method: 'POST',
-          headers: {
-            Authorization: 'Bearer ' + token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(['DEL', 'proposal_answer'])
-        });
 
-        const upstashData = await upstashRes.json();
-        return res.status(200).json({ success: true, reset: true, result: upstashData });
+      // Reset action
+      if (!body.answer) {
+        await fetch(url + '/', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(['DEL', 'proposal_history'])
+        });
+        return res.status(200).json({ success: true, reset: true });
       }
 
-      const answer = body.answer;
-      const timestamp = body.timestamp || new Date().toLocaleString();
-      const valToStore = JSON.stringify({ answer, timestamp });
-
-      const upstashRes = await fetch(url + '/', {
+      // Read existing history array first
+      const getRes = await fetch(url + '/', {
         method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(['SET', 'proposal_answer', valToStore])
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['GET', 'proposal_history'])
+      });
+      const getData = await getRes.json();
+      let history = [];
+      if (getData && getData.result) {
+        try { history = JSON.parse(getData.result); } catch (e) {}
+      }
+
+      // Push new event
+      const newEntry = {
+        id: history.length + 1,
+        answer: body.answer,
+        timestamp: body.timestamp || new Date().toLocaleString()
+      };
+      history.push(newEntry);
+
+      // Save updated history list back to Redis
+      await fetch(url + '/', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['SET', 'proposal_history', JSON.stringify(history)])
       });
 
-      const upstashData = await upstashRes.json();
-      return res.status(200).json({ success: true, answer, timestamp, result: upstashData });
+      return res.status(200).json({ success: true, history });
     }
 
+    // 2. GET (Fetch history array)
     if (req.method === 'GET') {
       const upstashRes = await fetch(url + '/', {
         method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(['GET', 'proposal_answer'])
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['GET', 'proposal_history'])
       });
-
       const data = await upstashRes.json();
 
+      let history = [];
       if (data && data.result) {
-        try {
-          const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-          return res.status(200).json(parsed);
-        } catch (e) {
-          return res.status(200).json({ answer: data.result, timestamp: null });
-        }
+        try { history = JSON.parse(data.result); } catch (e) {}
       }
 
-      return res.status(200).json({ answer: null, timestamp: null });
+      return res.status(200).json({ history });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
