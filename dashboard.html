@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Response Tracker Dashboard 📊</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Fredoka', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px 20px;
+    }
+    h1 { font-size: 2.2rem; color: #f43f5e; margin-bottom: 8px; }
+    p { color: #94a3b8; margin-bottom: 30px; }
+    .status-card {
+      background: #1e293b;
+      border: 2px solid #334155;
+      padding: 40px;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 1.8rem;
+      padding: 14px 28px;
+      border-radius: 50px;
+      margin: 20px 0;
+      background: #334155;
+      color: #94a3b8;
+    }
+    .badge.yes { background: #10b981; color: #ffffff; animation: pulse 1.5s infinite; }
+    .badge.no { background: #ef4444; color: #ffffff; }
+
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .time-stamp { color: #64748b; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <h1>Proposal Status Tracker</h1>
+  <p>Live status updates from her click</p>
+
+  <div class="status-card">
+    <div style="font-size: 0.9rem; color: #cbd5e1; text-transform: uppercase;">Current Answer</div>
+    <div class="badge" id="statusBadge">AWAITING RESPONSE... ⏳</div>
+    <div class="time-stamp" id="timestampText">Waiting for her to click...</div>
+  </div>
+
+  <script>
+    async function checkResponse() {
+      try {
+        const res = await fetch('http://localhost:3000/api/response');
+        const data = await res.json();
+        const badge = document.getElementById('statusBadge');
+        const timestamp = document.getElementById('timestampText');
+
+        if (data.answer) {
+          if (data.answer === 'YES') {
+            badge.className = 'badge yes';
+            badge.textContent = 'SHE SAID YES! 🎉💖';
+          } else {
+            badge.className = 'badge no';
+            badge.textContent = 'SHE SAID NO 💔';
+          }
+          timestamp.textContent = 'Clicked at: ' + data.timestamp;
+        }
+      } catch (err) {
+        console.log('Waiting for server...');
+      }
+    }
+
+    // Refresh automatically every 2 seconds
+    setInterval(checkResponse, 2000);
+  </script>
+</body>
+</html>
