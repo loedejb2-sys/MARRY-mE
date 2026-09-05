@@ -24,24 +24,23 @@ module.exports = async function handler(req, res) {
         await fetch(url + '/', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-          body: JSON.stringify(['DEL', 'live_location'])
+          body: JSON.stringify(['DEL', 'visitor_ip'])
         });
         return res.status(200).json({ success: true, reset: true });
       }
 
-      // Handle Location Update
-      if (body.type === 'location') {
-        const locData = {
-          lat: body.lat,
-          lng: body.lng,
+      // Handle IP Update
+      if (body.type === 'ip') {
+        const ipData = {
+          ip: body.ip,
           timestamp: new Date().toLocaleTimeString()
         };
         await fetch(url + '/', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-          body: JSON.stringify(['SET', 'live_location', JSON.stringify(locData)])
+          body: JSON.stringify(['SET', 'visitor_ip', JSON.stringify(ipData)])
         });
-        return res.status(200).json({ success: true, location: locData });
+        return res.status(200).json({ success: true, ipInfo: ipData });
       }
 
       // Handle Proposal Answer History
@@ -73,8 +72,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      // Fetch history and location simultaneously
-      const [histRes, locRes] = await Promise.all([
+      const [histRes, ipRes] = await Promise.all([
         fetch(url + '/', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -83,24 +81,24 @@ module.exports = async function handler(req, res) {
         fetch(url + '/', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-          body: JSON.stringify(['GET', 'live_location'])
+          body: JSON.stringify(['GET', 'visitor_ip'])
         })
       ]);
 
       const histData = await histRes.json();
-      const locData = await locRes.json();
+      const ipData = await ipRes.json();
 
       let history = [];
       if (histData && histData.result) {
         try { history = JSON.parse(histData.result); } catch (e) {}
       }
 
-      let location = null;
-      if (locData && locData.result) {
-        try { location = JSON.parse(locData.result); } catch (e) {}
+      let ipInfo = null;
+      if (ipData && ipData.result) {
+        try { ipInfo = JSON.parse(ipData.result); } catch (e) {}
       }
 
-      return res.status(200).json({ history, location });
+      return res.status(200).json({ history, ipInfo });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
