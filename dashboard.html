@@ -62,12 +62,12 @@
   <script>
     async function checkResponse() {
       try {
-        const res = await fetch('http://localhost:3000/api/response');
+        const res = await fetch('/api/response');
         const data = await res.json();
         const badge = document.getElementById('statusBadge');
         const timestamp = document.getElementById('timestampText');
 
-        if (data.answer) {
+        if (data && data.answer) {
           if (data.answer === 'YES') {
             badge.className = 'badge yes';
             badge.textContent = 'SHE SAID YES! 🎉💖';
@@ -75,15 +75,15 @@
             badge.className = 'badge no';
             badge.textContent = 'SHE SAID NO 💔';
           }
-          timestamp.textContent = 'Clicked at: ' + data.timestamp;
+          timestamp.textContent = 'Clicked at: ' + (data.timestamp || 'Just now');
         }
       } catch (err) {
-        console.log('Waiting for server...');
+        console.log('Waiting for response...');
       }
     }
 
-    // Refresh automatically every 2 seconds
     setInterval(checkResponse, 2000);
+    checkResponse();
   </script>
 </body>
 </html>
