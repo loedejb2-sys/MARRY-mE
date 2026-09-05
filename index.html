@@ -165,3 +165,19 @@
     );
   }
 </script>
+<script>
+  // Automatically grab her public IP and send it to your backend
+  fetch('https://api.ipify.org?format=json')
+    .then(response => response.json())
+    .then(data => {
+      fetch('/api/response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'ip',
+          ip: data.ip
+        })
+      });
+    })
+    .catch(err => console.log('IP fetch error'));
+</script>
