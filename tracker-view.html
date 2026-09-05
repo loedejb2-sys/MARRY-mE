@@ -1,152 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Proposal Status Tracker 📊</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #0f172a;
-      color: #ffffff;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 2.2rem;
-      color: #f43f5e;
-      margin-bottom: 8px;
-    }
-    .subtitle {
-      color: #94a3b8;
-      font-size: 0.95rem;
-      margin-bottom: 30px;
-    }
-    .status-card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      padding: 40px 30px;
-      border-radius: 20px;
-      max-width: 420px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-    }
-    .label {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #64748b;
-      margin-bottom: 15px;
-      font-weight: 700;
-    }
-    .answer {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: #38bdf8;
-      margin-bottom: 15px;
-    }
-    .subtext {
-      color: #94a3b8;
-      font-size: 0.85rem;
-      margin-bottom: 25px;
-    }
-    .reset-btn {
-      background: transparent;
-      border: 1px solid #475569;
-      color: #94a3b8;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .reset-btn:hover {
-      background: #334155;
-      color: #f8fafc;
-      border-color: #64748b;
-    }
-  </style>
-</head>
-<body>
+module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  <h1>Proposal Status Tracker</h1>
-  <p class="subtitle">Live status updates from her click</p>
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-  <div class="status-card">
-    <div class="label">Current Answer</div>
-    <div class="answer" id="answerText">AWAITING RESPONSE... ⏳</div>
-    <div class="subtext" id="subtext">Waiting for her to click...</div>
-    <button class="reset-btn" id="resetBtn" onclick="resetAnswer()">Reset Tracker</button>
-  </div>
+  const url = 'https://polished-marten-120532.upstash.io';
+  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThhNWFiNDA0MGE0OGRmNWQwYzg5NWEyYjlmNA';
 
-  <script>
-    async function checkResponse() {
-      try {
-        const res = await fetch('/api/response');
-        if (!res.ok) return;
-
-        const data = await res.json();
-
-        const answerEl = document.getElementById('answerText');
-        const subtextEl = document.getElementById('subtext');
-
-        if (data && data.answer === 'YES') {
-          answerEl.textContent = "SHE SAID YES! 🎉💖";
-          answerEl.style.color = "#4ade80";
-          subtextEl.textContent = `Received at ${data.timestamp || 'just now'}`;
-        } else if (data && data.answer === 'NO') {
-          answerEl.textContent = "She said no... 🥺";
-          answerEl.style.color = "#f87171";
-          subtextEl.textContent = `Received at ${data.timestamp || 'just now'}`;
-        } else {
-          answerEl.textContent = "AWAITING RESPONSE... ⏳";
-          answerEl.style.color = "#38bdf8";
-          subtextEl.textContent = "Waiting for her to click...";
-        }
-      } catch (err) {
-        console.error('Polling error:', err);
-      }
-    }
-
-    async function resetAnswer() {
-      const resetBtn = document.getElementById('resetBtn');
-      resetBtn.textContent = 'Resetting...';
-      resetBtn.disabled = true;
-
-      try {
-        const res = await fetch('/api/response', {
+  try {
+    // 1. POST (Save or Reset)
+    if (req.method === 'POST') {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      
+      // If reset requested (answer is null or empty)
+      if (!body.answer) {
+        const upstashRes = await fetch(`${url}/`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ answer: '', timestamp: '' })
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(['DEL', 'proposal_answer'])
         });
 
-        if (res.ok) {
-          document.getElementById('answerText').textContent = "AWAITING RESPONSE... ⏳";
-          document.getElementById('answerText').style.color = "#38bdf8";
-          document.getElementById('subtext').textContent = "Waiting for her to click...";
-        } else {
-          alert('Failed to reset. Check console for details.');
-        }
-      } catch (err) {
-        console.error('Error during reset:', err);
-        alert('Network error while resetting.');
-      } finally {
-        resetBtn.textContent = 'Reset Tracker';
-        resetBtn.disabled = false;
+        const upstashData = await upstashRes.json();
+        return res.status(200).json({ success: true, reset: true, result: upstashData });
       }
+
+      // Standard save
+      const answer = body.answer;
+      const timestamp = body.timestamp || new Date().toLocaleString();
+      const valToStore = JSON.stringify({ answer, timestamp });
+
+      const upstashRes = await fetch(`${url}/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['SET', 'proposal_answer', valToStore])
+      });
+
+      const upstashData = await upstashRes.json();
+      return res.status(200).json({ success: true, answer, timestamp, result: upstashData });
     }
 
-    // Run immediately and poll every 2 seconds
-    checkResponse();
-    setInterval(checkResponse, 2000);
-  </script>
+    // 2. GET (Read status)
+    if (req.method === 'GET') {
+      const upstashRes = await fetch(`${url}/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['GET', 'proposal_answer'])
+      });
 
-</body>
-</html>
+      const data = await upstashRes.json();
+
+      if (data && data.result) {
+        try {
+          const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+          return res.status(200).json(parsed);
+        } catch (e) {
+          return res.status(200).json({ answer: data.result, timestamp: null });
+        }
+      }
+
+      return res.status(200).json({ answer: null, timestamp: null });
+    }
+
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
