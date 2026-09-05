@@ -8,36 +8,48 @@ module.exports = async function handler(req, res) {
   }
 
   const url = 'https://polished-marten-120532.upstash.io';
-  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThhNWFiNDA0MGE0OGRmNWQwYzg5NWEyYjlmNA';
+  const token = 'gQAAAAAAAdbUAAIgcDEyOWY2OThnNWFlNDA0MGE0OGRmMwQyZg5NWEyYjlm';
 
   try {
-    // 1. OPSLAAN (POST)
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-      const answer = body.answer || 'YES';
+      
+      if (!body.answer) {
+        const upstashRes = await fetch(url + '/', {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(['DEL', 'proposal_answer'])
+        });
+
+        const upstashData = await upstashRes.json();
+        return res.status(200).json({ success: true, reset: true, result: upstashData });
+      }
+
+      const answer = body.answer;
       const timestamp = body.timestamp || new Date().toLocaleString();
       const valToStore = JSON.stringify({ answer, timestamp });
 
-      // Stuur als officieel Upstash array-commando
-      const upstashRes = await fetch(`${url}/`, {
+      const upstashRes = await fetch(url + '/', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: 'Bearer ' + token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(['SET', 'proposal_answer', valToStore])
       });
 
       const upstashData = await upstashRes.json();
-      return res.status(200).json({ success: true, answer, timestamp, raw: upstashData });
+      return res.status(200).json({ success: true, answer, timestamp, result: upstashData });
     }
 
-    // 2. UITLEZEN (GET)
     if (req.method === 'GET') {
-      const upstashRes = await fetch(`${url}/`, {
+      const upstashRes = await fetch(url + '/', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: 'Bearer ' + token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(['GET', 'proposal_answer'])
