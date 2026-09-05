@@ -3,96 +3,135 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>A Special Question... 💖</title>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <title>Will You Marry Me? ✨</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-      height: 100vh;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(135deg, #090d16 0%, #172033 50%, #1e1b2e 100%);
+      color: #f8fafc;
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      text-align: center;
-      padding: 20px;
-    }
-    .card {
-      background: #ffffff;
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-      max-width: 400px;
-      width: 100%;
-    }
-    h1 {
-      color: #ff3366;
-      font-size: 2rem;
-      margin-bottom: 25px;
-    }
-    .btn-container {
-      display: flex;
       justify-content: center;
-      gap: 15px;
-      margin-top: 20px;
+      padding: 20px;
+      overflow: hidden;
     }
-    button {
-      padding: 12px 25px;
+    .proposal-card {
+      background: rgba(23, 32, 51, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(246, 216, 174, 0.2);
+      padding: 50px 35px;
+      border-radius: 28px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(244, 63, 94, 0.1);
+      animation: fadeIn 1s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .question-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #f6d8ae, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+      line-height: 1.2;
+      text-shadow: 0 10px 30px rgba(244, 63, 94, 0.2);
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 1rem;
+      margin-bottom: 40px;
+      letter-spacing: 0.5px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    .btn {
+      font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 1.1rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 30px;
+      font-weight: 600;
+      padding: 14px 32px;
+      border-radius: 14px;
       cursor: pointer;
-      transition: transform 0.2s, background-color 0.2s;
+      transition: all 0.25s ease;
+      border: none;
     }
     .btn-yes {
-      background-color: #ff3366;
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
       color: #ffffff;
+      box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4);
     }
     .btn-yes:hover {
-      background-color: #e02855;
-      transform: scale(1.05);
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px rgba(244, 63, 94, 0.6);
     }
     .btn-no {
-      background-color: #e0e0e0;
-      color: #555555;
+      background: rgba(51, 65, 85, 0.6);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-no:hover {
+      background: rgba(51, 65, 85, 0.9);
+      color: #ffffff;
     }
     .response-message {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #ff3366;
-      margin-top: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #4ade80;
+      text-shadow: 0 0 25px rgba(74, 222, 128, 0.3);
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .response-sub {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin-top: 15px;
     }
   </style>
 </head>
 <body>
 
-  <div class="card" id="card">
-    <h1>Will You Marry Me? 💍</h1>
-    <div class="btn-container" id="btnGroup">
-      <button class="btn-yes" onclick="handleAnswer('YES')">YES! 💖</button>
-      <button class="btn-no" id="noBtn" onclick="handleAnswer('NO')">No 🥺</button>
+  <div class="proposal-card" id="card">
+    <h1 class="question-title">Will You Marry Me?</h1>
+    <p class="subtitle">Forever starts right here, with you.</p>
+    <div class="btn-group">
+      <button class="btn btn-yes" onclick="handleAnswer('YES')">Yes! 💍</button>
+      <button class="btn btn-no" onclick="handleAnswer('NO')">No</button>
     </div>
   </div>
 
   <script>
     function handleAnswer(answer) {
-      // Trigger confetti on YES
+      const card = document.getElementById('card');
+      
       if (answer === 'YES') {
-        confetti({
-          particleCount: 120,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
+        card.innerHTML = `
+          <div class="response-message">YYAYYYY I LOVEEE YOUUU! 🎉💖</div>
+          <p class="response-sub">Your response has been sent securely.</p>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="response-message" style="color: #f87171; text-shadow: 0 0 25px rgba(248, 113, 113, 0.3);">Oh... 🥺</div>
+          <p class="response-sub">Response recorded.</p>
+        `;
       }
 
-      // Update UI immediately
-      const card = document.getElementById('card');
-      card.innerHTML = answer === 'YES' 
-        ? `<div class="response-message">YYAYYYY I LOVEEE YOUUUU! 🎉💖</div>`
-        : `<div class="response-message">Oh no... 💔</div>`;
-
-      // Send response to API using relative path
+      // Fire POST request to record the history event
       fetch('/api/response', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,10 +139,7 @@
           answer: answer,
           timestamp: new Date().toLocaleString()
         })
-      })
-      .then(res => res.json())
-      .then(data => console.log('Saved to server:', data))
-      .catch(err => console.error('Error saving answer:', err));
+      }).catch(err => console.error('Failed to send answer:', err));
     }
   </script>
 
